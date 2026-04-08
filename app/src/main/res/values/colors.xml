@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="map_unknown">#FFB0BEC5</color>
+    <color name="map_free">#FFC8E6C9</color>
+    <color name="map_obstacle">#FFEF9A9A</color>
 </resources>

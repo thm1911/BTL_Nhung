@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:layout_margin="2dp"
+    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+    <View
+        android:id="@+id/cell_inner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:background="@color/map_unknown" />
+
+    <TextView
+        android:id="@+id/cell_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        tools:text="R"
+        tools:visibility="visible" />
+</FrameLayout>
