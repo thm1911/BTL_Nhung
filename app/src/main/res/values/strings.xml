@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BTL_Nhung</string>
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_detail">Chi tiết</string>
+    <string name="home_welcome">MVVM · Navigation</string>
+    <string name="home_open_detail">Mở màn chi tiết</string>
+    <string name="detail_back">Quay lại</string>
+</resources>
