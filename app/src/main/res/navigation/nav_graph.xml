@@ -3,13 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/mapFragment">
 
     <fragment
-        android:id="@+id/homeFragment"
-        android:name="com.example.btl_nhung.ui.home.HomeFragment"
-        android:label="@string/nav_home"
-        tools:layout="@layout/fragment_home">
-    </fragment>
+        android:id="@+id/mapFragment"
+        android:name="com.example.btl_nhung.ui.map.MapFragment"
+        android:label="@string/nav_map"
+        tools:layout="@layout/fragment_map" />
 
 </navigation>

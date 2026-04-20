@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name">BTL_Nhung</string>
-    <string name="nav_home">Trang chủ</string>
-    <string name="nav_detail">Chi tiết</string>
-    <string name="home_welcome">MVVM · Navigation</string>
-    <string name="home_open_detail">Mở màn chi tiết</string>
-    <string name="detail_back">Quay lại</string>
+    <string name="nav_map">Bản đồ</string>
+    <string name="map_screen_title">Mission Map (cm)</string>
+    <string name="map_meta_format">Pose: x=%.1f cm, y=%.1f cm, t=%.2f rad | target=(%.1f, %.1f)</string>
+    <string name="map_width_hint">Map width (cm)</string>
+    <string name="map_height_hint">Map height (cm)</string>
+    <string name="map_apply_size">Apply Size</string>
+    <string name="map_set_origin">Set Origin</string>
+    <string name="map_send_target">Send Target</string>
+    <string name="map_tap_hint">Tap vào canvas để chọn đích. App dùng screenToReal() để đổi px -&gt; cm.</string>
+    <string name="map_running_hint">Robot đang chạy tới đích, tạm khóa chọn target mới.</string>
+    <string name="map_control_json_label">Topic: robot2wd/cmd/control</string>
+    <string name="map_target_json_label">Topic: robot2wd/cmd/target</string>
 </resources>
