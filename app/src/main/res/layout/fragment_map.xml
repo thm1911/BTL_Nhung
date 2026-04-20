@@ -71,7 +71,8 @@
                 android:id="@+id/button_apply_map_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/map_apply_size" />
+                android:text="@string/map_apply_size"
+                android:layout_weight="1"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_set_origin"
@@ -79,14 +80,60 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="@string/map_set_origin" />
+                android:text="@string/map_set_origin"
+                android:layout_weight="1"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_send_target"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="@string/map_send_target" />
+                android:text="@string/map_send_target"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_clear_trail"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/map_clear_trail" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/map_target_x_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_target_x"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal|numberSigned"
+                    tools:text="100" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:hint="@string/map_target_y_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_target_y"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal|numberSigned"
+                    tools:text="-50" />
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
         <com.example.btl_nhung.ui.map.RobotMapCanvasView
@@ -95,6 +142,22 @@
             android:layout_height="360dp"
             android:layout_marginTop="12dp"
             android:background="#F3F7FA" />
+
+        <TextView
+            android:id="@+id/text_robot_position"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            tools:text="Vị trí robot hiện tại (cm): x=12.3, y=-4.8, t=15.0°" />
+
+        <TextView
+            android:id="@+id/text_map_scale_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Tỉ lệ hiển thị: 1 cm trên màn hình ≈ 9.8 cm (X), 10.1 cm (Y) ngoài thực tế" />
 
         <TextView
             android:id="@+id/text_map_hint"

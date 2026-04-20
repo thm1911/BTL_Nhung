@@ -35,8 +35,8 @@ class MapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.inputMapWidth.setText("500")
-        binding.inputMapHeight.setText("300")
+        binding.inputMapWidth.setText("400")
+        binding.inputMapHeight.setText("400")
 
         binding.mapCanvas.setOnTargetPickedListener { p ->
             viewModel.onMapTapped(p.x, p.y)
@@ -54,7 +54,22 @@ class MapFragment : Fragment() {
         binding.buttonSetOrigin.setOnClickListener {
             viewModel.sendSetOrigin()
         }
+        binding.buttonClearTrail.setOnClickListener {
+            viewModel.clearTrail()
+        }
         binding.buttonSendTarget.setOnClickListener {
+            val manualX = binding.inputTargetX.text?.toString()?.trim()
+            val manualY = binding.inputTargetY.text?.toString()?.trim()
+            val hasManual = !manualX.isNullOrEmpty() || !manualY.isNullOrEmpty()
+            if (hasManual) {
+                val x = manualX?.toDoubleOrNull()
+                val y = manualY?.toDoubleOrNull()
+                if (x == null || y == null) {
+                    Snackbar.make(binding.root, "Tọa độ nhập tay không hợp lệ.", Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                viewModel.setManualTarget(x, y)
+            }
             viewModel.sendTargetToDevice()
         }
 
@@ -77,6 +92,12 @@ class MapFragment : Fragment() {
                         state.target?.x ?: -1.0,
                         state.target?.y ?: -1.0,
                     )
+                    binding.textRobotPosition.text = getString(
+                        R.string.map_robot_position_format,
+                        state.robotPose.x,
+                        state.robotPose.y,
+                        state.robotPose.t,
+                    )
                     binding.mapCanvas.render(
                         mapWidthCm = state.mapWidthCm,
                         mapHeightCm = state.mapHeightCm,
@@ -84,7 +105,17 @@ class MapFragment : Fragment() {
                         target = state.target,
                         trail = state.trail,
                     )
-                    binding.mapCanvas.setTargetSelectionEnabled(true)
+                    val scale = binding.mapCanvas.getRealCmPerScreenCm()
+                    binding.textMapScaleNote.text = if (scale == null) {
+                        getString(R.string.map_scale_note_unavailable)
+                    } else {
+                        getString(R.string.map_scale_note_format, scale.first, scale.second)
+                    }
+                    val allowNewTargetSelection = !state.isRobotRunning
+                    binding.mapCanvas.setTargetSelectionEnabled(allowNewTargetSelection)
+                    binding.buttonSendTarget.isEnabled = allowNewTargetSelection
+                    binding.inputTargetX.isEnabled = allowNewTargetSelection
+                    binding.inputTargetY.isEnabled = allowNewTargetSelection
                     binding.textMapHint.text = getString(R.string.map_tap_hint)
                     binding.cardControlJson.isVisible = !state.lastControlJson.isNullOrBlank()
                     binding.textControlJson.text = state.lastControlJson.orEmpty()

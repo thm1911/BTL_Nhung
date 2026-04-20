@@ -2,14 +2,20 @@
     <string name="app_name">BTL_Nhung</string>
     <string name="nav_map">Bản đồ</string>
     <string name="map_screen_title">Mission Map (cm)</string>
-    <string name="map_meta_format">Pose: x=%.1f cm, y=%.1f cm, t=%.2f rad | target=(%.1f, %.1f)</string>
+    <string name="map_meta_format">Pose: x=%.1f cm, y=%.1f cm, t=%.1f deg | target=(%.1f, %.1f)</string>
     <string name="map_width_hint">Map width (cm)</string>
     <string name="map_height_hint">Map height (cm)</string>
     <string name="map_apply_size">Apply Size</string>
-    <string name="map_set_origin">Set Origin</string>
-    <string name="map_send_target">Send Target</string>
-    <string name="map_tap_hint">Tap vào canvas để chọn đích. App dùng screenToReal() để đổi px -&gt; cm.</string>
+    <string name="map_set_origin">Stop Robot</string>
+    <string name="map_send_target">Move Robot</string>
+    <string name="map_clear_trail">Clear Trail</string>
+    <string name="map_target_x_hint">Target X (cm)</string>
+    <string name="map_target_y_hint">Target Y (cm)</string>
+    <string name="map_robot_position_format">Vị trí robot hiện tại (cm): x=%.2f, y=%.2f, t=%.1f°</string>
+    <string name="map_scale_note_format">Tỉ lệ hiển thị: 1 cm trên màn hình ≈ %.2f cm (X), %.2f cm (Y) trên map thực tế</string>
+    <string name="map_scale_note_unavailable">Tỉ lệ hiển thị: đang cập nhật...</string>
+    <string name="map_tap_hint">Hệ trục Oxy tâm canvas: O(0,0), hỗ trợ tọa độ âm. t tính theo độ, nghiêng trái là t dương.</string>
     <string name="map_running_hint">Robot đang chạy tới đích, tạm khóa chọn target mới.</string>
-    <string name="map_control_json_label">Topic: robot2wd/cmd/control</string>
-    <string name="map_target_json_label">Topic: robot2wd/cmd/target</string>
+    <string name="map_control_json_label">Topic: robot2wd/cmd (stop)</string>
+    <string name="map_target_json_label">Topic: robot2wd/cmd (move)</string>
 </resources>
