@@ -5,6 +5,23 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+fun readConfig(name: String): String {
+    return providers.gradleProperty(name).orNull?.trim()
+        ?: System.getenv(name)?.trim()
+        ?: ""
+}
+
+fun quoted(value: String): String {
+    val escaped = value.replace("\\", "\\\\").replace("\"", "\\\"")
+    return "\"$escaped\""
+}
+
+val mqttHost = readConfig("MQTT_HOST")
+val mqttPort = readConfig("MQTT_PORT").toIntOrNull() ?: 8883
+val mqttScheme = readConfig("MQTT_SCHEME").ifBlank { "tcp" }
+val mqttUser = readConfig("MQTT_USER")
+val mqttPass = readConfig("MQTT_PASS")
+
 android {
     namespace = "com.example.btl_nhung"
     compileSdk = 36
@@ -17,6 +34,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "MQTT_HOST", quoted(mqttHost))
+        buildConfigField("int", "MQTT_PORT", mqttPort.toString())
+        buildConfigField("String", "MQTT_SCHEME", quoted(mqttScheme))
+        buildConfigField("String", "MQTT_USER", quoted(mqttUser))
+        buildConfigField("String", "MQTT_PASS", quoted(mqttPass))
     }
 
     buildTypes {
@@ -36,6 +58,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
 }
@@ -60,6 +83,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.gson)
+    implementation(libs.paho.mqtt)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

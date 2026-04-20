@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
+import androidx.appcompat.content.res.AppCompatResources
+import com.example.btl_nhung.R
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -41,24 +43,29 @@ class RobotMapCanvasView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeWidth = 2.5f
     }
+    private val axisPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#263238")
+        style = Paint.Style.STROKE
+        strokeWidth = 4f
+    }
+    private val axisTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#263238")
+        textSize = 28f
+    }
     private val trailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#1E88E5")
         style = Paint.Style.STROKE
         strokeWidth = 6f
     }
-    private val robotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val robotHeadPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#2E7D32")
         style = Paint.Style.FILL
-    }
-    private val headingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
-        style = Paint.Style.STROKE
-        strokeWidth = 4f
     }
     private val targetPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#E53935")
         style = Paint.Style.FILL
     }
+    private val robotDrawable = AppCompatResources.getDrawable(context, R.drawable.ic_cart)
 
     fun render(
         mapWidthCm: Double,
@@ -85,25 +92,48 @@ class RobotMapCanvasView @JvmOverloads constructor(
 
     /** Converts cm coordinates into canvas pixels. */
     fun realToScreen(xCm: Double, yCm: Double): PointF {
-        val scaleX = width.toDouble() / mapWidthCm
-        val scaleY = height.toDouble() / mapHeightCm
-        val screenX = (xCm * scaleX).toFloat()
-        val screenY = (height - yCm * scaleY).toFloat()
+        val spanX = mapWidthCm.coerceAtLeast(1.0)
+        val spanY = mapHeightCm.coerceAtLeast(1.0)
+        val scaleX = width.toDouble() / spanX
+        val scaleY = height.toDouble() / spanY
+        val halfX = spanX / 2.0
+        val halfY = spanY / 2.0
+        val screenX = ((xCm + halfX) * scaleX).toFloat()
+        val screenY = ((halfY - yCm) * scaleY).toFloat()
         return PointF(screenX, screenY)
     }
 
     /** Converts canvas pixels into cm coordinates. */
     fun screenToReal(px: Float, py: Float): PointCm {
-        val scaleX = width.toDouble() / mapWidthCm
-        val scaleY = height.toDouble() / mapHeightCm
-        val x = (px / scaleX).coerceIn(0.0, mapWidthCm)
-        val y = ((height - py) / scaleY).coerceIn(0.0, mapHeightCm)
+        val spanX = mapWidthCm.coerceAtLeast(1.0)
+        val spanY = mapHeightCm.coerceAtLeast(1.0)
+        val scaleX = width.toDouble() / spanX
+        val scaleY = height.toDouble() / spanY
+        val halfX = spanX / 2.0
+        val halfY = spanY / 2.0
+        val x = (px / scaleX - halfX).coerceIn(-halfX, halfX)
+        val y = (halfY - py / scaleY).coerceIn(-halfY, halfY)
         return PointCm(x, y)
+    }
+
+    /**
+     * Returns how many real-map cm correspond to 1cm on the device screen.
+     * First value is along X axis, second value is along Y axis.
+     */
+    fun getRealCmPerScreenCm(): Pair<Double, Double>? {
+        if (width <= 0 || height <= 0) return null
+        val xdpi = resources.displayMetrics.xdpi.toDouble().coerceAtLeast(1.0)
+        val ydpi = resources.displayMetrics.ydpi.toDouble().coerceAtLeast(1.0)
+        val screenWidthCm = width * 2.54 / xdpi
+        val screenHeightCm = height * 2.54 / ydpi
+        if (screenWidthCm <= 0.0 || screenHeightCm <= 0.0) return null
+        return (mapWidthCm / screenWidthCm) to (mapHeightCm / screenHeightCm)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawGrid(canvas)
+        drawAxes(canvas)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), borderPaint)
 
         if (trail.size >= 2) {
@@ -123,29 +153,54 @@ class RobotMapCanvasView @JvmOverloads constructor(
         }
 
         val robot = realToScreen(robotPose.x, robotPose.y)
-        canvas.drawCircle(robot.x, robot.y, 16f, robotPaint)
-        val headingLen = 26f
-        val hx = (robot.x + cos(robotPose.t).toFloat() * headingLen)
-        val hy = (robot.y - sin(robotPose.t).toFloat() * headingLen)
-        canvas.drawLine(robot.x, robot.y, hx, hy, headingPaint)
+        drawRobot(canvas, robot.x, robot.y, robotPose.t)
     }
 
     private fun drawGrid(canvas: Canvas) {
         val stepCm = pickGridStepCm()
-        var x = 0.0
-        while (x <= mapWidthCm + 0.0001) {
+        val halfX = mapWidthCm / 2.0
+        val halfY = mapHeightCm / 2.0
+        var x = -halfX
+        while (x <= halfX + 0.0001) {
             val p = realToScreen(x, 0.0)
             val major = isMajorLine(x)
             canvas.drawLine(p.x, 0f, p.x, height.toFloat(), if (major) gridMajorPaint else gridMinorPaint)
             x += stepCm
         }
-        var y = 0.0
-        while (y <= mapHeightCm + 0.0001) {
+        var y = -halfY
+        while (y <= halfY + 0.0001) {
             val p = realToScreen(0.0, y)
             val major = isMajorLine(y)
             canvas.drawLine(0f, p.y, width.toFloat(), p.y, if (major) gridMajorPaint else gridMinorPaint)
             y += stepCm
         }
+    }
+
+    private fun drawAxes(canvas: Canvas) {
+        val origin = realToScreen(0.0, 0.0)
+        canvas.drawLine(0f, origin.y, width.toFloat(), origin.y, axisPaint)
+        canvas.drawLine(origin.x, 0f, origin.x, height.toFloat(), axisPaint)
+        canvas.drawText("O(0,0)", origin.x + 8f, origin.y - 8f, axisTextPaint)
+        canvas.drawText("+X", width - 52f, origin.y - 10f, axisTextPaint)
+        canvas.drawText("+Y", origin.x + 10f, 30f, axisTextPaint)
+    }
+
+    private fun drawRobot(canvas: Canvas, centerX: Float, centerY: Float, headingDeg: Double) {
+        val iconHalf = 40
+        canvas.save()
+        canvas.translate(centerX, centerY)
+        // Canvas rotate positive is clockwise (Y-down), inverse of mathematical CCW heading.
+        canvas.rotate((-headingDeg).toFloat())
+        robotDrawable?.setBounds(-iconHalf, -iconHalf, iconHalf, iconHalf)
+        robotDrawable?.draw(canvas)
+        canvas.restore()
+
+        // Green nose marker at front side (+X in robot local frame).
+        val noseOffset = 20f
+        val tRad = Math.toRadians(headingDeg)
+        val hx = centerX + cos(tRad).toFloat() * noseOffset
+        val hy = centerY - sin(tRad).toFloat() * noseOffset
+        canvas.drawCircle(hx, hy, 5.5f, robotHeadPaint)
     }
 
     private fun isMajorLine(vCm: Double): Boolean {

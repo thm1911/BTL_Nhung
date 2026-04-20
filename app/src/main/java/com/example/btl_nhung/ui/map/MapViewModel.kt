@@ -26,6 +26,7 @@ class MapViewModel @Inject constructor(
     private val mapWidthCm = MutableStateFlow(500.0)
     private val mapHeightCm = MutableStateFlow(300.0)
     private val selectedTarget = MutableStateFlow<PointCm?>(null)
+    private val movingTarget = MutableStateFlow<PointCm?>(null)
     private val trail = MutableStateFlow<List<PointCm>>(listOf(PointCm(0.0, 0.0)))
 
     private val _userMessages = MutableSharedFlow<String>(extraBufferCapacity = 8)
@@ -38,6 +39,11 @@ class MapViewModel @Inject constructor(
                 val last = trail.value.lastOrNull()
                 if (last == null || distanceCm(last, p) >= 1.5) {
                     trail.value = trail.value + p
+                }
+                val active = movingTarget.value
+                if (active != null && distanceCm(p, active) <= RUNNING_DISTANCE_EPS_CM) {
+                    movingTarget.value = null
+                    _userMessages.tryEmit("Robot đã đến đích, có thể chọn điểm mới.")
                 }
             }
         }
@@ -52,24 +58,26 @@ class MapViewModel @Inject constructor(
         val trail: List<PointCm>,
     )
 
-    val uiState: StateFlow<MapUiState> = combine(
-        mapWidthCm,
-        mapHeightCm,
-        repository.pose,
-        selectedTarget,
-        trail,
-    ) { width, height, pose, target, path ->
-        val poseCm = PoseCm(x = pose.x, y = pose.y, t = pose.t)
-        val running = target?.let { distanceCm(PointCm(poseCm.x, poseCm.y), it) > RUNNING_DISTANCE_EPS_CM } ?: false
-        BaseUiData(
-            width = width,
-            height = height,
-            pose = poseCm,
-            target = target,
-            isRobotRunning = running,
-            trail = path,
-        )
-    }.combine(repository.lastControlJson) { base, controlJson ->
+    val uiState: StateFlow<MapUiState> = mapWidthCm
+        .combine(mapHeightCm) { width, height -> width to height }
+        .combine(repository.pose) { wh, pose -> Triple(wh.first, wh.second, pose) }
+        .combine(selectedTarget) { base, selected -> Pair(base, selected) }
+        .combine(movingTarget) { withSelected, moving -> Triple(withSelected.first, withSelected.second, moving) }
+        .combine(trail) { data, path ->
+            val base = data.first
+            val selected = data.second
+            val moving = data.third
+            val poseCm = PoseCm(x = base.third.x, y = base.third.y, t = base.third.t)
+            val displayTarget = moving ?: selected
+            BaseUiData(
+                width = base.first,
+                height = base.second,
+                pose = poseCm,
+                target = displayTarget,
+                isRobotRunning = moving != null,
+                trail = path,
+            )
+        }.combine(repository.lastControlJson) { base, controlJson ->
         base to controlJson
     }.combine(repository.lastTargetJson) { (base, controlJson), targetJson ->
         MapUiState(
@@ -104,6 +112,18 @@ class MapViewModel @Inject constructor(
     }
 
     fun onMapTapped(targetX: Double, targetY: Double) {
+        if (movingTarget.value != null) {
+            _userMessages.tryEmit("Robot đang chạy, chưa thể chọn đích mới.")
+            return
+        }
+        selectedTarget.value = PointCm(targetX, targetY)
+    }
+
+    fun setManualTarget(targetX: Double, targetY: Double) {
+        if (movingTarget.value != null) {
+            _userMessages.tryEmit("Robot đang chạy, chưa thể đổi đích.")
+            return
+        }
         selectedTarget.value = PointCm(targetX, targetY)
     }
 
@@ -111,18 +131,22 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             repository.sendSetOrigin().fold(
                 onSuccess = {
+                    movingTarget.value = null
                     selectedTarget.value = null
-                    trail.value = listOf(PointCm(0.0, 0.0))
-                    _userMessages.emit("Đã gửi set_origin, gốc tọa độ reset về (0,0).")
+                    _userMessages.emit("Đã gửi lệnh stop cho robot.")
                 },
                 onFailure = { e ->
-                    _userMessages.emit(e.message ?: "Gửi set_origin thất bại.")
+                    _userMessages.emit(e.message ?: "Gửi lệnh stop thất bại.")
                 },
             )
         }
     }
 
     fun sendTargetToDevice() {
+        if (movingTarget.value != null) {
+            _userMessages.tryEmit("Robot đang chạy, chờ đến đích rồi gửi lệnh mới.")
+            return
+        }
         val target = selectedTarget.value
         if (target == null) {
             _userMessages.tryEmit("Chưa chọn đích trên map.")
@@ -132,13 +156,20 @@ class MapViewModel @Inject constructor(
             val result = repository.sendTarget(target.x, target.y)
             result.fold(
                 onSuccess = {
-                    _userMessages.emit("Đã gửi target_x/target_y theo tọa độ cm.")
+                    movingTarget.value = target
+                    _userMessages.emit("Đã gửi lệnh move theo tọa độ x/y.")
                 },
                 onFailure = { e ->
-                    _userMessages.emit(e.message ?: "Gửi đích thất bại.")
+                    _userMessages.emit(e.message ?: "Gửi lệnh move thất bại.")
                 },
             )
         }
+    }
+
+    fun clearTrail() {
+        val pose = repository.pose.value
+        trail.value = listOf(PointCm(pose.x, pose.y))
+        _userMessages.tryEmit("Đã xóa đường đi đã vẽ trên map.")
     }
 
     private fun distanceCm(a: PointCm, b: PointCm): Double {

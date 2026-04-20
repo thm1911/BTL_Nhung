@@ -2,21 +2,25 @@ package com.example.btl_nhung.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-/** ESP32 -> App (`robot2wd/state/pose`). */
+// `robot2wd/status/pose`
+// Lấy vị trí hiện tại của robot
 data class PoseStateDto(
     val x: Double,
     val y: Double,
     val t: Double,
-    val ts: Long,
+    val ts: Long = 0L,
 )
 
-/** App -> ESP32 (`robot2wd/cmd/control`). */
+// `robot2wd/cmd`
+// Cho robot dừng -> set vị trí hiện tại là origin
 data class SetOriginCommandDto(
-    val cmd: String = "set_origin",
+    val type: String = "stop",
 )
 
-/** App -> ESP32 (`robot2wd/cmd/target`). */
+// `robot2wd/cmd`
+// Set vị trí đích
 data class TargetCommandDto(
-    @SerializedName("target_x") val targetX: Double,
-    @SerializedName("target_y") val targetY: Double,
+    val type: String = "move",
+    @SerializedName("x") val targetX: Double,
+    @SerializedName("y") val targetY: Double,
 )
