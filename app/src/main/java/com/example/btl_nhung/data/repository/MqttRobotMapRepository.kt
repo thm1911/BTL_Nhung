@@ -121,6 +121,13 @@ class MqttRobotMapRepository @Inject constructor(
         }
     }
 
+    override suspend fun sendReset(): Result<Unit> {
+        val resetJson = JsonObject().apply { addProperty("type", "reset") }.toString()
+        return publish(TOPIC_CMD, resetJson).onSuccess {
+            _lastControlJson.value = resetJson
+        }
+    }
+
     override suspend fun sendTarget(xCm: Double, yCm: Double): Result<Unit> {
         val moveJson = JsonObject().apply {
             addProperty("type", "move")
@@ -246,6 +253,7 @@ class MqttRobotMapRepository @Inject constructor(
             val json = JsonParser.parseString(payload).asJsonObject
             when (json.get("type")?.asString?.lowercase()) {
                 "stop" -> _lastControlJson.value = payload
+                "reset" -> _lastControlJson.value = payload
                 "move" -> _lastTargetJson.value = payload
             }
         }.onFailure { e ->
