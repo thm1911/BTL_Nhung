@@ -142,6 +142,22 @@ class MapViewModel @Inject constructor(
         }
     }
 
+    fun sendResetRobot() {
+        viewModelScope.launch {
+            repository.sendReset().fold(
+                onSuccess = {
+                    movingTarget.value = null
+                    selectedTarget.value = null
+                    trail.value = emptyList()
+                    _userMessages.emit("Đã gửi reset robot về (0,0) và xóa trail.")
+                },
+                onFailure = { e ->
+                    _userMessages.emit(e.message ?: "Gửi lệnh reset thất bại.")
+                },
+            )
+        }
+    }
+
     fun sendTargetToDevice() {
         if (movingTarget.value != null) {
             _userMessages.tryEmit("Robot đang chạy, chờ đến đích rồi gửi lệnh mới.")

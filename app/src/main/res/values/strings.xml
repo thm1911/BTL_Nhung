@@ -7,6 +7,7 @@
     <string name="map_height_hint">Map height (cm)</string>
     <string name="map_apply_size">Apply Size</string>
     <string name="map_set_origin">Stop Robot</string>
+    <string name="map_reset_robot">Reset Robot</string>
     <string name="map_send_target">Move Robot</string>
     <string name="map_clear_trail">Clear Trail</string>
     <string name="map_target_x_hint">Target X (cm)</string>

@@ -54,6 +54,9 @@ class MapFragment : Fragment() {
         binding.buttonSetOrigin.setOnClickListener {
             viewModel.sendSetOrigin()
         }
+        binding.buttonResetRobot.setOnClickListener {
+            viewModel.sendResetRobot()
+        }
         binding.buttonClearTrail.setOnClickListener {
             viewModel.clearTrail()
         }
